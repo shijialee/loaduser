@@ -1,11 +1,3 @@
-help:
-	@echo
-	@echo 'make db-image: pull mysql image'
-	@echo 'make start-db: start mysql container'
-	@echo 'make clean: clean up container'
-	@echo
-	@true
-
 db-image:
 	docker pull mysql:8
 
