@@ -67,32 +67,32 @@ function _valid_db_connection(): bool {
 
 function _has_table(): bool {
     if (!DB::Schema()->hasTable(TABLE_NAME)) {
-        return False;
+        return false;
     }
-    return True;
+    return true;
 }
 
 function _check_csv_fields($name, $surname, $email) {
     // XXX line will also be skipped if value is 0
     if (empty($name)) {
         error_log(sprintf("name is missing and line is skipped"));
-        return False;
+        return false;
     }
     if (empty($surname)) {
         error_log(sprintf("surname is missing and line is skipped"));
-        return False;
+        return false;
     }
     if (empty($email)) {
         error_log(sprintf("email is missing and line is skipped"));
-        return False;
+        return false;
     }
 
     $valid_email = filter_var($email, FILTER_VALIDATE_EMAIL);
     if (!$valid_email) {
         error_log(sprintf("%s is not a valid email address and not inserted", $email));
-        return False;
+        return false;
     }
-    return True;
+    return true;
 }
 
 function load_file(string $file, bool $dry_run): void {
