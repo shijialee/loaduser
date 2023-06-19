@@ -63,18 +63,27 @@ function create_table(): void {
 }
 
 function main(): void {
+    $options = get_options();
+
     $db = new DB;
     $db->addConnection([
         'driver' => 'mysql',
-        'host' => 'localhost',
+        'host' => $options['h'],
         'database' => DATABASE,
-        'username' => 'root',
-        'password' => 'password',
+        'username' => $options['u'],
+        'password' => $options['p'],
         'charset' => 'utf8mb4',
         'collation' => 'utf8mb4_unicode_ci',
         'prefix' => '',
     ]);
     $db->setAsGlobal();
+
+    if (isset($options['create_table'])) {
+        create_table();
+    } elseif ($options['file']) {
+        $dry_run = $options['dry_run'] ?? false;
+        load_file($options['file'], $dry_run);
+    }
 }
 
 main();
