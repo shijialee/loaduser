@@ -67,6 +67,20 @@ function load_file(string $file, bool $dry_run): void {
         $surname = ucfirst(strtolower(trim($surname)));
         $email = strtolower(trim($email));
 
+        // XXX line will also be skipped if value is 0
+        if (empty($name)) {
+            error_log(sprintf("name is missing and line is skipped"));
+            continue;
+        }
+        if (empty($surname)) {
+            error_log(sprintf("surname is missing and line is skipped"));
+            continue;
+        }
+        if (empty($email)) {
+            error_log(sprintf("email is missing and line is skipped"));
+            continue;
+        }
+
         $valid_email = filter_var($email, FILTER_VALIDATE_EMAIL);
         if (!$valid_email) {
             error_log(sprintf("%s is not a valid email address and not inserted", $email));
