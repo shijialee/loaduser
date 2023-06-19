@@ -55,16 +55,60 @@ function get_options(): array {
     return $getOpt->getOptions();
 }
 
+function _valid_db_connection(): bool {
+    try {
+        DB::connection()->getPdo();
+    } catch (Exception $e) {
+        error_log('Error connecting to database');
+        return false;
+    }
+    return true;
+}
+
+function _has_table(): bool {
+    if (!DB::Schema()->hasTable(TABLE_NAME)) {
+        return False;
+    }
+    return True;
+}
+
+function _check_csv_fields($name, $surname, $email) {
+    // XXX line will also be skipped if value is 0
+    if (empty($name)) {
+        error_log(sprintf("name is missing and line is skipped"));
+        return False;
+    }
+    if (empty($surname)) {
+        error_log(sprintf("surname is missing and line is skipped"));
+        return False;
+    }
+    if (empty($email)) {
+        error_log(sprintf("email is missing and line is skipped"));
+        return False;
+    }
+
+    $valid_email = filter_var($email, FILTER_VALIDATE_EMAIL);
+    if (!$valid_email) {
+        error_log(sprintf("%s is not a valid email address and not inserted", $email));
+        return False;
+    }
+    return True;
+}
+
 function load_file(string $file, bool $dry_run): void {
     if (mime_content_type($file) !== 'text/csv') {
         error_log("file is not in csv format.");
         return;
     }
-    if (!$dry_run && !DB::Schema()->hasTable(TABLE_NAME)) {
-        error_log("please create table first.");
-        return;
+    if (!$dry_run) {
+        if (!_valid_db_connection()) {
+            return;
+        }
+        if (!_has_table()) {
+            error_log("please create table first.");
+            return;
+        }
     }
-
 
     $file = new SplFileObject($file);
     $file->setFlags(SplFileObject::READ_CSV | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE | SplFileObject::READ_AHEAD);
@@ -81,23 +125,7 @@ function load_file(string $file, bool $dry_run): void {
         $surname = ucfirst(strtolower(trim($surname)));
         $email = strtolower(trim($email));
 
-        // XXX line will also be skipped if value is 0
-        if (empty($name)) {
-            error_log(sprintf("name is missing and line is skipped"));
-            continue;
-        }
-        if (empty($surname)) {
-            error_log(sprintf("surname is missing and line is skipped"));
-            continue;
-        }
-        if (empty($email)) {
-            error_log(sprintf("email is missing and line is skipped"));
-            continue;
-        }
-
-        $valid_email = filter_var($email, FILTER_VALIDATE_EMAIL);
-        if (!$valid_email) {
-            error_log(sprintf("%s is not a valid email address and not inserted", $email));
+        if (!_check_csv_fields($name, $surname, $email)) {
             continue;
         }
 
@@ -119,8 +147,12 @@ function load_file(string $file, bool $dry_run): void {
 }
 
 function create_table(): void {
-    if (DB::Schema()->hasTable(TABLE_NAME)) {
-        printf("table already exist. skip creation\n");
+    if (!_valid_db_connection()) {
+        return;
+    }
+
+    if (_has_table()) {
+        error_log("table alread exist.");
         return;
     }
 
