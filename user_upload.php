@@ -113,7 +113,7 @@ function load_file(string $file, bool $dry_run): void {
             }
         }
     }
-    if ($data) {
+    if (!$dry_run && $data) {
         DB::table(TABLE_NAME)->insertOrIgnore($data);
     }
 }
@@ -131,6 +131,7 @@ function create_table(): void {
         $table->string('email')->unique();
         $table->timestamps();
     });
+    echo "Table is created\n";
 }
 
 function main(): void {
