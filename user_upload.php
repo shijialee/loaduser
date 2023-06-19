@@ -56,6 +56,16 @@ function get_options(): array {
 }
 
 function load_file(string $file, bool $dry_run): void {
+    if (mime_content_type($file) !== 'text/csv') {
+        error_log("file is not in csv format.");
+        return;
+    }
+    if (!$dry_run && !DB::Schema()->hasTable(TABLE_NAME)) {
+        error_log("please create table first.");
+        return;
+    }
+
+
     $file = new SplFileObject($file);
     $file->setFlags(SplFileObject::READ_CSV | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE | SplFileObject::READ_AHEAD);
 
@@ -109,6 +119,11 @@ function load_file(string $file, bool $dry_run): void {
 }
 
 function create_table(): void {
+    if (DB::Schema()->hasTable(TABLE_NAME)) {
+        printf("table already exist. skip creation\n");
+        return;
+    }
+
     DB::schema()->create(TABLE_NAME, function ($table) {
         $table->increments('id');
         $table->string('name');
