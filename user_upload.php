@@ -10,6 +10,9 @@ use GetOpt\ArgumentException\Missing;
 
 define("TABLE_NAME", 'users');
 define("DATABASE", 'catalyst');
+# assume 1 line is 50 bytes.  20 Million lines is around 100M.
+# change this value based on how much RAM is available to you..
+define("CHUNK_SIZE", 20000000);
 
 function get_options(): array {
     $getOpt = new GetOpt([
@@ -56,6 +59,7 @@ function load_file(string $file, bool $dry_run): void {
     $file = new SplFileObject($file);
     $file->setFlags(SplFileObject::READ_CSV | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE | SplFileObject::READ_AHEAD);
 
+    $data = [];
     foreach ($file as $num_of_row => $row) {
         // ignore csv header
         if ($num_of_row == 0) {
@@ -88,13 +92,19 @@ function load_file(string $file, bool $dry_run): void {
         }
 
         if (!$dry_run) {
-            $data = [
+            $data[] = [
                 'name' => $name,
                 'surname' => $surname,
                 'email' => $email,
             ];
-            DB::table(TABLE_NAME)->insert($data);
+            if (count($data) % CHUNK_SIZE == 0) {
+                DB::table(TABLE_NAME)->insertOrIgnore($data);
+                $data = [];
+            }
         }
+    }
+    if ($data) {
+        DB::table(TABLE_NAME)->insertOrIgnore($data);
     }
 }
 
