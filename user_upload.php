@@ -52,6 +52,38 @@ function get_options(): array {
     return $getOpt->getOptions();
 }
 
+function load_file(string $file, bool $dry_run): void {
+    $file = new SplFileObject($file);
+    $file->setFlags(SplFileObject::READ_CSV | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE | SplFileObject::READ_AHEAD);
+
+    foreach ($file as $num_of_row => $row) {
+        // ignore csv header
+        if ($num_of_row == 0) {
+            continue;
+        }
+
+        list($name, $surname, $email) = $row;
+        $name = ucfirst(strtolower(trim($name)));
+        $surname = ucfirst(strtolower(trim($surname)));
+        $email = strtolower(trim($email));
+
+        $valid_email = filter_var($email, FILTER_VALIDATE_EMAIL);
+        if (!$valid_email) {
+            error_log(sprintf("%s is not a valid email address and not inserted", $email));
+            continue;
+        }
+
+        if (!$dry_run) {
+            $data = [
+                'name' => $name,
+                'surname' => $surname,
+                'email' => $email,
+            ];
+            DB::table(TABLE_NAME)->insert($data);
+        }
+    }
+}
+
 function create_table(): void {
     DB::schema()->create(TABLE_NAME, function ($table) {
         $table->increments('id');
