@@ -96,6 +96,10 @@ function _check_csv_fields($name, $surname, $email) {
 }
 
 function load_file(string $file, bool $dry_run): void {
+    if (file_exists($file)) {
+        error_log("file doesn't exist");
+        return;
+    }
     if (mime_content_type($file) !== 'text/csv') {
         error_log("file is not in csv format.");
         return;
