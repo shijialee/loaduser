@@ -6,29 +6,34 @@ Chunk database insertion is supported to handle large file.
 
 * If an email is invalid, error prints out and the line is not inserted.
 * Name, surname and email are not empty and can't be 0. Otherwise, line won't be inserted.
-* Email can be checked against DNS lookup using egulias/email-validator package.
 * If it's a csv file, the first line is always the header.
-* docker, php, php composer are installed in your local system.
 
 ## Usage
 
 #### Setup
 
+This setup uses docker and php so make sure they are installed on your local system.
+
 Run the following commands to setup development environment.
 
-1. `make db-image`  : pull mysql:8 docker image.
-1. `make start-db`  : start database docker container.
-1. `composer install` : install required php packages.
+1. `make install`  : Pulls docker images for database and php composer. Builds composer packages.
+1. `make start-db`  : start database docker container on 127.0.0.1, port 3306.
+  * this starts a mysql database with default user, password and database set to `catalyst`.
 
 #### Run the program
 
-call user_load.php with users.csv file
-
-* `make create-table` : call `create_table` argument.
-* `make dry-run` : dry run load file.
-* `make load-file` : load users.csv file to database table.
-* `make select-table` : to see what's in the table.
+* create table
+  * `php user_upload.php --create_table -u catalyst -p catalyst -h 127.0.0.1`
+* dry run
+  * `php user_upload.php --dry_run --file users.csv -u catalyst -p catalyst -h 127.0.0.1`
+* load users.csv file to database table.
+  * `php user_upload.php --file users.csv -u catalyst -p catalyst -h 127.0.0.1
 
 #### Clean up
 
 * `make clean`: remove docker container and network
+
+## Further Improvements
+
+* Email can be checked against DNS lookup using `egulias/email-validator` package.
+
